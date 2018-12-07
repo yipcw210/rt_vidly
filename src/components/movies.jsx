@@ -3,23 +3,69 @@ import { getMovies } from "../services/fakeMovieService";
 
 class Movies extends Component {
   state = {
-    movies: getMovies()
+    movies: getMovies(),
+    tags: ["a", "b", "c"]
   };
 
-  renderMovieFormat() {
-    let { movies } = this.state;
+  spanStyles = {
+    margin: 50
+  };
+
+  divStyles = {
+    border: "solid"
+  };
+
+  handleDelete = () => {};
+
+  renderMovie() {
+    let movies = JSON.parse(JSON.stringify(this.state.movies));
+    console.log(this.state.movies);
+    console.log(movies);
+    let movieProps;
+
     for (let index in movies) {
+      movies[index].genre = movies[index].genre.name;
+      delete movies[index]._id;
+      delete movies[index].publishDate;
+      movieProps = Object.keys(movies[index]);
       movies[index] = Object.values(movies[index]);
+      movies[index] = movies[index].map(e => (
+        <span style={this.spanStyles}>{e}</span>
+      ));
     }
-    movies.shift();
-    console.log(movies.shift().map(content => <div>content</div>));
+
+    // this.setState({ state: movies });
+    movieProps = movieProps.map(value => (
+      <span style={this.spanStyles}>{value}</span>
+    ));
+
+    let movieMessage = (
+      <div>Showing {movies.length} movies in the database</div>
+    );
+    const movieToRender = movies.map((value, index) => (
+      <div style={this.divStyles}>
+        {value}
+        <button
+          onClick={() => {
+            this.state.movies.splice(index, 1);
+            this.setState({ movies: this.state.movies });
+            console.log("delete");
+          }}
+        >
+          Delete
+        </button>
+      </div>
+    ));
+
+    return [movieMessage, ...movieProps, ...movieToRender];
   }
 
   render() {
-    // this.renderMovieFormat();
+    // this.Format();
     return (
       <div>
-        <span>Title Genre Stock Rate</span>
+        {this.state.movies.length !== 0 && this.renderMovie()}
+        {this.state.movies.length === 0 && <div>no movies</div>}
       </div>
     );
   }
