@@ -5,7 +5,14 @@ import App from "./App";
 import Movie from "./components/movies";
 import * as serviceWorker from "./serviceWorker";
 import "bootstrap/dist/css/bootstrap.css";
-import "font-awesome/css/font-awesome.css";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHeart as fasFaHeart } from "@fortawesome/free-solid-svg-icons";
+import { faHeart as farFaHeart } from "@fortawesome/free-regular-svg-icons";
+
+library.add(fasFaHeart, farFaHeart);
+
+// library.add(farFaHeart, fasFaHeart);
 
 ReactDOM.render(<Movie />, document.getElementById("root"));
 

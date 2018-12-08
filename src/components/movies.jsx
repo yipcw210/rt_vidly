@@ -1,73 +1,74 @@
 import React, { Component } from "react";
 import { getMovies } from "../services/fakeMovieService";
+import Like from "./common/like";
 
 class Movies extends Component {
   state = {
-    movies: getMovies(),
-    tags: ["a", "b", "c"]
+    movies: getMovies()
   };
 
-  spanStyles = {
-    margin: 50
+  handleDeleteMovie = movieId => {
+    const movies = this.state.movies.filter(movie => movie._id !== movieId);
+    // console.log(movies);
+    this.setState({ movies });
   };
 
-  divStyles = {
-    border: "solid"
+  handleLike = movie => {
+    const movies = [...this.state.movies];
+    const index = movies.indexOf(movie);
+    movies[index] = { ...movies[index] };
+    movies[index].liked = !movies[index].liked;
+    this.setState({ movies });
   };
 
-  handleDelete = () => {};
-
-  renderMovie() {
-    let movies = JSON.parse(JSON.stringify(this.state.movies));
-    console.log(this.state.movies);
-    console.log(movies);
-    let movieProps;
-
-    for (let index in movies) {
-      movies[index].genre = movies[index].genre.name;
-      delete movies[index]._id;
-      delete movies[index].publishDate;
-      movieProps = Object.keys(movies[index]);
-      movies[index] = Object.values(movies[index]);
-      movies[index] = movies[index].map(e => (
-        <span style={this.spanStyles}>{e}</span>
-      ));
-    }
-
-    // this.setState({ state: movies });
-    movieProps = movieProps.map(value => (
-      <span style={this.spanStyles}>{value}</span>
-    ));
-
-    let movieMessage = (
-      <div>Showing {movies.length} movies in the database</div>
+  rederMovieTable() {
+    const { movies } = this.state;
+    if (movies.length === 0) return <div>There no movies</div>;
+    return (
+      <React.Fragment>
+        <div>There are {movies.length} movies</div>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Genre</th>
+              <th>NumberInStock</th>
+              <th>DailyRentalRate</th>
+              <th />
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {movies.map(movie => (
+              <tr key={movie._id}>
+                <th>{movie.title}</th>
+                <th>{movie.genre.name}</th>
+                <th>{movie.numberInStock}</th>
+                <th>{movie.dailyRentalRate}</th>
+                <td>
+                  <Like
+                    liked={movie.liked}
+                    onClick={() => this.handleLike(movie)}
+                  />
+                </td>
+                <th>
+                  <button
+                    onClick={() => this.handleDeleteMovie(movie._id)}
+                    className="btn btn-danger"
+                  >
+                    Delete
+                  </button>
+                </th>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </React.Fragment>
     );
-    const movieToRender = movies.map((value, index) => (
-      <div style={this.divStyles}>
-        {value}
-        <button
-          onClick={() => {
-            this.state.movies.splice(index, 1);
-            this.setState({ movies: this.state.movies });
-            console.log("delete");
-          }}
-        >
-          Delete
-        </button>
-      </div>
-    ));
-
-    return [movieMessage, ...movieProps, ...movieToRender];
   }
 
   render() {
-    // this.Format();
-    return (
-      <div>
-        {this.state.movies.length !== 0 && this.renderMovie()}
-        {this.state.movies.length === 0 && <div>no movies</div>}
-      </div>
-    );
+    return <React.Fragment>{this.rederMovieTable()}</React.Fragment>;
   }
 }
 
