@@ -4,16 +4,21 @@ import { getGenres } from "../services/fakeGenreService";
 import Like from "./common/like";
 import Pagination from "./common/pagination";
 import { paginate } from "../utils/paginate";
-import ListGroup from "./common/ListGroup";
+import ListGroup from "./common/listGroup";
 
 class Movies extends Component {
   state = {
-    movies: getMovies(),
-    genres: getGenres(),
+    movies: [],
+    genres: [],
     pageSize: 4,
     currentPage: 1,
-    currentGroup: "All Genres"
+    selectedGenre: ""
   };
+
+  componentDidMount() {
+    const genres = [{ name: "All Genres" }, ...getGenres()];
+    this.setState({ movies: getMovies(), genres });
+  }
 
   handleDeleteMovie = movieId => {
     const movies = this.state.movies.filter(movie => movie._id !== movieId);
@@ -33,21 +38,27 @@ class Movies extends Component {
     this.setState({ currentPage: page });
   };
 
-  handleGroupChange = group => {
-    console.log(group);
-    this.setState({ currentGroup: group });
+  handleGenreSelect = genre => {
+    this.setState({ selectedGenre: genre, currentPage: 1 });
   };
 
   rederMovieTable() {
-    const { pageSize, currentPage, currentGroup } = this.state;
-    const allMovies = this.state.movies.filter(
-      movie => movie.genre.name === currentGroup
-    );
-    if (allMovies.length === 0) return <div>There are no movies</div>;
-    const movies = paginate(allMovies, currentPage, pageSize);
+    const {
+      movies: allMovies,
+      pageSize,
+      currentPage,
+      selectedGenre
+    } = this.state;
+
+    const filteredMovies =
+      selectedGenre && selectedGenre._id
+        ? allMovies.filter(movie => movie.genre._id === selectedGenre._id)
+        : allMovies;
+    if (filteredMovies.length === 0) return <div>There are no movies</div>;
+    const movies = paginate(filteredMovies, currentPage, pageSize);
     return (
       <React.Fragment>
-        <div>There are {movies.length} movies</div>
+        <div>There are {filteredMovies.length} movies</div>
         <table className="table">
           <thead>
             <tr>
@@ -89,20 +100,31 @@ class Movies extends Component {
   }
 
   render() {
-    const { genres, pageSize, currentPage, currentGroup } = this.state;
-    const allMovies = this.state.movies.filter(
-      movie => movie.genre.name === currentGroup
-    );
+    const {
+      movies: allMovies,
+      genres,
+      pageSize,
+      currentPage,
+      selectedGenre
+    } = this.state;
+    const filteredMovies =
+      selectedGenre && selectedGenre._id
+        ? allMovies.filter(movie => movie.genre._id === selectedGenre._id)
+        : allMovies;
     return (
       <React.Fragment>
         <div className="row">
-          <div className="col-sm">
-            <ListGroup groups={genres} onGroupChange={this.handleGroupChange} />
+          <div className="col-2">
+            <ListGroup
+              items={genres}
+              onItemSelect={this.handleGenreSelect}
+              selectedItem={selectedGenre}
+            />
           </div>
-          <div className="col-sm">
+          <div className="col">
             {this.rederMovieTable()}
             <Pagination
-              itemsCount={allMovies.length}
+              itemsCount={filteredMovies.length}
               pageSize={pageSize}
               onPageChange={this.handlePageChange}
               currentPage={currentPage}
