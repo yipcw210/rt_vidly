@@ -5,10 +5,14 @@ import Movie from "./components/movies";
 import * as serviceWorker from "./serviceWorker";
 import "bootstrap/dist/css/bootstrap.css";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faHeart as fasFaHeart } from "@fortawesome/free-solid-svg-icons";
+import {
+  faHeart as fasFaHeart,
+  faSortUp,
+  faSortDown
+} from "@fortawesome/free-solid-svg-icons";
 import { faHeart as farFaHeart } from "@fortawesome/free-regular-svg-icons";
 
-library.add(fasFaHeart, farFaHeart);
+library.add(fasFaHeart, farFaHeart, faSortUp, faSortDown);
 
 // library.add(farFaHeart, fasFaHeart);
 

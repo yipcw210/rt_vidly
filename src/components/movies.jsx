@@ -1,7 +1,8 @@
 import React, { Component } from "react";
+import _ from "lodash";
 import { getMovies } from "../services/fakeMovieService";
 import { getGenres } from "../services/fakeGenreService";
-import Like from "./common/like";
+import MoviesTable from "./common/moviesTable";
 import Pagination from "./common/pagination";
 import { paginate } from "../utils/paginate";
 import ListGroup from "./common/listGroup";
@@ -12,11 +13,12 @@ class Movies extends Component {
     genres: [],
     pageSize: 4,
     currentPage: 1,
+    sortColumn: { path: "title", order: "asc" },
     selectedGenre: ""
   };
 
   componentDidMount() {
-    const genres = [{ name: "All Genres" }, ...getGenres()];
+    const genres = [{ _id: "", name: "All Genres" }, ...getGenres()];
     this.setState({ movies: getMovies(), genres });
   }
 
@@ -42,75 +44,46 @@ class Movies extends Component {
     this.setState({ selectedGenre: genre, currentPage: 1 });
   };
 
-  rederMovieTable() {
+  handleSort = sortColumn => {
+    this.setState({ sortColumn });
+  };
+
+  getPagedData() {
     const {
       movies: allMovies,
       pageSize,
       currentPage,
-      selectedGenre
+      selectedGenre,
+      sortColumn
     } = this.state;
 
     const filteredMovies =
       selectedGenre && selectedGenre._id
         ? allMovies.filter(movie => movie.genre._id === selectedGenre._id)
         : allMovies;
-    if (filteredMovies.length === 0) return <div>There are no movies</div>;
-    const movies = paginate(filteredMovies, currentPage, pageSize);
-    return (
-      <React.Fragment>
-        <div>There are {filteredMovies.length} movies</div>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Genre</th>
-              <th>NumberInStock</th>
-              <th>DailyRentalRate</th>
-              <th />
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {movies.map(movie => (
-              <tr key={movie._id}>
-                <th>{movie.title}</th>
-                <th>{movie.genre.name}</th>
-                <th>{movie.numberInStock}</th>
-                <th>{movie.dailyRentalRate}</th>
-                <td>
-                  <Like
-                    liked={movie.liked}
-                    onClick={() => this.handleLike(movie)}
-                  />
-                </td>
-                <th>
-                  <button
-                    onClick={() => this.handleDeleteMovie(movie._id)}
-                    className="btn btn-danger"
-                  >
-                    Delete
-                  </button>
-                </th>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </React.Fragment>
+
+    const sortedMovies = _.orderBy(
+      filteredMovies,
+      [sortColumn.path],
+      [sortColumn.order]
     );
+
+    const pagedMovies = paginate(sortedMovies, currentPage, pageSize);
+
+    return { totalCount: filteredMovies.length, data: pagedMovies };
   }
 
   render() {
     const {
-      movies: allMovies,
       genres,
       pageSize,
       currentPage,
-      selectedGenre
+      selectedGenre,
+      sortColumn
     } = this.state;
-    const filteredMovies =
-      selectedGenre && selectedGenre._id
-        ? allMovies.filter(movie => movie.genre._id === selectedGenre._id)
-        : allMovies;
+
+    const { totalCount, data: movies } = this.getPagedData();
+
     return (
       <React.Fragment>
         <div className="row">
@@ -122,9 +95,15 @@ class Movies extends Component {
             />
           </div>
           <div className="col">
-            {this.rederMovieTable()}
+            <MoviesTable
+              movies={movies}
+              onLike={this.handleLike}
+              onDeleteMovie={this.handleDeleteMovie}
+              onSort={this.handleSort}
+              sortColumn={sortColumn}
+            />
             <Pagination
-              itemsCount={filteredMovies.length}
+              itemsCount={totalCount}
               pageSize={pageSize}
               onPageChange={this.handlePageChange}
               currentPage={currentPage}
