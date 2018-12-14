@@ -4,7 +4,7 @@ import Form from "./common/form";
 import { getGenres } from "../services/fakeGenreService";
 import { saveMovie, getMovie } from "./../services/fakeMovieService";
 
-class MovieForm extends Form {
+class addMovieForm extends Form {
   state = {
     data: {
       title: "",
@@ -15,7 +15,7 @@ class MovieForm extends Form {
     genres: [],
     errors: {
       title: "",
-      genreId: "",
+      genre: "",
       numberInStock: "",
       dailyRentalRate: ""
     }
@@ -26,7 +26,7 @@ class MovieForm extends Form {
     title: Joi.string()
       .required()
       .label("Title"),
-    genreId: Joi.string()
+    genre: Joi.string()
       .required()
       .label("Genre"),
     numberInStock: Joi.number()
@@ -43,9 +43,7 @@ class MovieForm extends Form {
 
   componentDidMount() {
     const genres = getGenres();
-    const data = { ...this.state.data };
-    data.genreId = genres[0]._id;
-    this.setState({ genres, data });
+    this.setState({ genres });
 
     const movieId = this.props.match.params.id;
     if (movieId === "new") return;
@@ -76,7 +74,7 @@ class MovieForm extends Form {
     return (
       <form onSubmit={this.handleSubmit}>
         {this.renderInput("title", "Title")}
-        {this.renderSelect("genreId", "Genre", this.state.genres)}
+        {this.renderSelect("genre", "Genre", this.state.genres)}
         {this.renderInput("numberInStock", "NumberInStock", "number")}
         {this.renderInput("dailyRentalRate", "DailyRentalRate", "number")}
         {this.renderButton("Add Movie")}
@@ -85,4 +83,4 @@ class MovieForm extends Form {
   }
 }
 
-export default MovieForm;
+export default addMovieForm;

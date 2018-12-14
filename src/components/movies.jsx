@@ -1,11 +1,13 @@
 import React, { Component } from "react";
 import _ from "lodash";
+import { Link } from "react-router-dom";
 import { getMovies } from "../services/fakeMovieService";
 import { getGenres } from "../services/fakeGenreService";
 import MoviesTable from "./common/moviesTable";
 import Pagination from "./common/pagination";
 import { paginate } from "../utils/paginate";
 import ListGroup from "./common/listGroup";
+import SearchBox from "./common/searchBox";
 
 class Movies extends Component {
   state = {
@@ -14,7 +16,8 @@ class Movies extends Component {
     pageSize: 4,
     currentPage: 1,
     sortColumn: { path: "title", order: "asc" },
-    selectedGenre: ""
+    selectedGenre: "",
+    searchQuery: ""
   };
 
   componentDidMount() {
@@ -48,19 +51,29 @@ class Movies extends Component {
     this.setState({ sortColumn });
   };
 
+  handleSearch = query => {
+    this.setState({ searchQuery: query, selectedGenre: "", currentPage: 1 });
+  };
+
   getPagedData() {
     const {
       movies: allMovies,
       pageSize,
       currentPage,
       selectedGenre,
-      sortColumn
+      sortColumn,
+      searchQuery
     } = this.state;
 
-    const filteredMovies =
-      selectedGenre && selectedGenre._id
-        ? allMovies.filter(movie => movie.genre._id === selectedGenre._id)
-        : allMovies;
+    let filteredMovies = allMovies;
+    if (searchQuery)
+      filteredMovies = allMovies.filter(m =>
+        m.title.toLowerCase().startsWith(searchQuery.toLowerCase())
+      );
+    else if (selectedGenre && selectedGenre._id)
+      filteredMovies = allMovies.filter(
+        movie => movie.genre._id === selectedGenre._id
+      );
 
     const sortedMovies = _.orderBy(
       filteredMovies,
@@ -95,6 +108,17 @@ class Movies extends Component {
             />
           </div>
           <div className="col">
+            <button
+              className="btn btn-primary"
+              onClick={() => this.props.history.push("/movies/new")}
+            >
+              Add Movie
+            </button>
+            <div>Showing {totalCount} movies in the database</div>
+            <SearchBox
+              value={this.state.searchQuery}
+              onChange={this.handleSearch}
+            />
             <MoviesTable
               movies={movies}
               onLike={this.handleLike}
