@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import _ from "lodash";
 import { Link } from "react-router-dom";
-import { getMovies } from "../services/fakeMovieService";
-import { getGenres } from "../services/fakeGenreService";
+import { getMovies } from "../services/movieService";
+import { getGenres } from "../services/genreService";
 import MoviesTable from "./common/moviesTable";
 import Pagination from "./common/pagination";
 import { paginate } from "../utils/paginate";
@@ -20,9 +20,11 @@ class Movies extends Component {
     searchQuery: ""
   };
 
-  componentDidMount() {
-    const genres = [{ _id: "", name: "All Genres" }, ...getGenres()];
-    this.setState({ movies: getMovies(), genres });
+  async componentDidMount() {
+    let { data: genres } = await getGenres();
+    genres = [{ _id: "", name: "All Genres" }, ...genres];
+    let { data: movies } = await getMovies();
+    this.setState({ movies, genres });
   }
 
   handleDeleteMovie = movieId => {
