@@ -1,13 +1,16 @@
 import React, { Component } from "react";
 import _ from "lodash";
 import { Link } from "react-router-dom";
-import { getMovies } from "../services/movieService";
+import { getMovies, deleteMovies } from "../services/movieService";
 import { getGenres } from "../services/genreService";
+import logger from "../services/logService";
 import MoviesTable from "./common/moviesTable";
 import Pagination from "./common/pagination";
 import { paginate } from "../utils/paginate";
 import ListGroup from "./common/listGroup";
 import SearchBox from "./common/searchBox";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 class Movies extends Component {
   state = {
@@ -27,10 +30,19 @@ class Movies extends Component {
     this.setState({ movies, genres });
   }
 
-  handleDeleteMovie = movieId => {
-    const movies = this.state.movies.filter(movie => movie._id !== movieId);
-    // console.log(movies);
+  handleDeleteMovie = async movieId => {
+    const originalMovies = this.state.movies;
+    const movies = originalMovies.filter(movie => movie._id !== movieId);
     this.setState({ movies });
+
+    try {
+      await deleteMovies(movieId);
+    } catch (ex) {
+      if (ex.response && ex.response.status === 404) {
+        logger.log("Movie not found");
+      }
+      this.setState({ movies: originalMovies });
+    }
   };
 
   handleLike = movie => {
@@ -101,6 +113,7 @@ class Movies extends Component {
 
     return (
       <React.Fragment>
+        <ToastContainer />
         <div className="row">
           <div className="col-2">
             <ListGroup
